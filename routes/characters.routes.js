@@ -1,24 +1,18 @@
 // routes/characters.routes.js
 const router = require("express").Router();
 
-// Characters list
-router.get("/characters/list", (req, res) => {
-  const characters = [
-    {
-      id: 1,
-      name: "Homer Simpson",
-      occupation: "Nuclear Safety Inspector",
-      weapon: "...",
-    },
-    {
-      id: 2,
-      name: "Wiggum",
-      occupation: "Police Chief",
-      weapon: "Colt Anaconda",
-    },
-  ];
+const axios = require("axios");
 
-  res.render("pages/characters-list", { characters: characters });
+const APIService = require("./../services/api.service");
+const apiService = new APIService();
+
+// Characters list  - localhost:3000/characters/list
+router.get("/characters/list", (req, res) => {
+  apiService.getAllCharacters().then((response) => {
+    // response.data is the body of the response
+    console.log("response.data", response.data);
+    res.render("pages/characters-list", { characters: response.data });
+  });
 });
 
 // New character form render
@@ -30,19 +24,19 @@ router.get("/characters/create", (req, res) => {
 router.post("/characters/create", (req, res) => {
   const { name, occupation, weapon } = req.body;
   const characterInfo = { name, occupation, weapon };
+
+  apiService.createCharacter(characterInfo).then((response) => {
+    res.redirect("/characters/list"); // --> our route localhost:3000/characters/list
+  });
 });
 
 // Character edit form render and auto fill
 router.get("/characters/edit/:id", (req, res) => {
   const characterId = req.params.id;
 
-  const character = {
-    name: "Wiggum",
-    occupation: "Police Chief",
-    weapon: "Colt Anaconda",
-  };
-
-  res.render("pages/edit-character-form", { character: character });
+  apiService.getOneCharacter(characterId).then((response) => {
+    res.render("pages/edit-character-form", { character: response.data });
+  });
 });
 
 // Character edit form submit
